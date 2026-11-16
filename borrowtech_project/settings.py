@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # BorrowTech application apps
     'accounts.apps.AccountsConfig',
+    'equipment.apps.EquipmentConfig',
+    'reservations.apps.ReservationsConfig',
 ]
 
 MIDDLEWARE = [

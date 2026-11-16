@@ -30,9 +30,12 @@
                 <a href="{% url 'profile' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center gap-2">
                     <i class="fa-solid fa-user-pen"></i> Edit Profile
                 </a>
-                <button class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md transition flex items-center gap-2">
+                <a href="{% url 'equipment_create' %}" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md transition flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> Add Equipment
-                </button>
+                </a>
+                <a href="{% url 'custodian_queue' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-inbox"></i> Full Queue
+                </a>
             </div>
         </div>
     </div>
@@ -91,9 +94,9 @@
                 <h2 class="text-lg font-bold text-slate-900">Pending Student Reservation Queue</h2>
                 <p class="text-xs text-slate-500 mt-0.5">Review, approve, or reject student hardware loan requests</p>
             </div>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto">
-                <i class="fa-solid fa-hourglass-half"></i> 3 Pending Immediate Review
-            </span>
+            <a href="{% url 'custodian_queue' %}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto hover:bg-amber-100 transition">
+                <i class="fa-solid fa-hourglass-half"></i> {{ stats.pending_approvals }} Awaiting Decision &bull; View Queue
+            </a>
         </div>
 
         <div class="overflow-x-auto">
@@ -108,28 +111,38 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    {% for req in pending_queue %}
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">{{ req.req_id }}</td>
-                            <td class="py-4 px-6">
-                                <span class="font-bold text-slate-900 block">{{ req.student_name }}</span>
-                                <span class="text-xs text-slate-500 font-mono">{{ req.student_id }}</span>
-                            </td>
-                            <td class="py-4 px-6">
-                                <span class="font-medium text-slate-900 block">{{ req.equipment }}</span>
-                                <span class="text-xs text-slate-500">Duration: {{ req.duration }}</span>
-                            </td>
-                            <td class="py-4 px-6 text-xs text-slate-600 max-w-xs">{{ req.purpose }}</td>
-                            <td class="py-4 px-6 text-right space-x-2">
-                                <button class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">
-                                    <i class="fa-solid fa-check mr-1"></i> Approve
-                                </button>
-                                <button class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-slate-600 text-xs font-semibold transition">
-                                    Reject
-                                </button>
+                    {% if pending_queue %}
+                        {% for req in pending_queue %}
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">
+                                    <a href="{% url 'reservation_detail' pk=req.pk %}" class="text-purple-700 hover:underline">{{ req.reservation_code }}</a>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="font-bold text-slate-900 block">{{ req.borrower.get_full_name|default:req.borrower.username }}</span>
+                                    <span class="text-xs text-slate-500 font-mono">{{ req.borrower.student_id|default:"ID: N/A" }}</span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="font-medium text-slate-900 block">{{ req.equipment.name }}</span>
+                                    <span class="text-xs text-slate-500 font-mono">{{ req.quantity }} unit(s) &bull; {{ req.start_date|date:"M d" }} to {{ req.expected_return_date|date:"M d" }}</span>
+                                </td>
+                                <td class="py-4 px-6 text-xs text-slate-600 max-w-xs line-clamp-2">{{ req.purpose }}</td>
+                                <td class="py-4 px-6 text-right space-x-2">
+                                    <a href="{% url 'custodian_approve' pk=req.pk %}" class="inline-block px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">
+                                        <i class="fa-solid fa-check mr-1"></i> Approve
+                                    </a>
+                                    <a href="{% url 'custodian_reject' pk=req.pk %}" class="inline-block px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 hover:text-rose-700 text-slate-600 text-xs font-semibold transition">
+                                        Reject
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-xs text-slate-500">
+                                <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> All reservation requests are up to date. No pending student approvals.
                             </td>
                         </tr>
-                    {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -146,21 +159,37 @@
         </div>
 
         <div class="space-y-4">
-            {% for log in audit_trail %}
-                <div class="flex items-start space-x-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-                    <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0 text-sm">
-                        <i class="fa-solid fa-receipt"></i>
-                    </div>
-                    <div class="flex-grow">
-                        <div class="flex items-center justify-between">
-                            <h4 class="text-sm font-bold text-slate-900">{{ log.action }}</h4>
-                            <span class="text-xs font-mono text-slate-400">{{ log.timestamp }}</span>
+            {% if audit_trail %}
+                {% for log in audit_trail %}
+                    <div class="flex items-start space-x-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                        <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0 text-sm">
+                            <i class="fa-solid fa-receipt"></i>
                         </div>
-                        <p class="text-xs text-slate-600 mt-1">{{ log.details }}</p>
-                        <span class="inline-block text-[11px] text-purple-700 font-medium mt-1">Logged by: {{ log.custodian }}</span>
+                        <div class="flex-grow">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-sm font-bold text-slate-900">
+                                    {{ log.get_status_display }}: {{ log.equipment.name }} ({{ log.reservation_code }})
+                                </h4>
+                                <span class="text-xs font-mono text-slate-400">{{ log.updated_at|date:"M d, H:i" }}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mt-1">
+                                Student: <strong class="text-slate-700">{{ log.borrower.get_full_name|default:log.borrower.username }}</strong>
+                                {% if log.return_condition %}
+                                    &bull; Condition: <span class="font-medium text-emerald-700">{{ log.get_return_condition_display }}</span>
+                                {% endif %}
+                                {% if log.custodian_remarks %}
+                                    &bull; Note: "{{ log.custodian_remarks }}"
+                                {% endif %}
+                            </p>
+                            <span class="inline-block text-[11px] text-purple-700 font-medium mt-1">
+                                Staff: {{ log.inspected_by.get_full_name|default:user.get_full_name|default:user.username }}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p class="text-xs text-slate-500 text-center py-4">No recent returns or handovers recorded yet.</p>
+            {% endif %}
         </div>
     </div>
 </div>

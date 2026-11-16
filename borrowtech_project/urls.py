@@ -10,6 +10,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
+    path('equipment/', include('equipment.urls')),
+    path('reservations/', include('reservations.urls')),
 ]
 
 if settings.DEBUG:

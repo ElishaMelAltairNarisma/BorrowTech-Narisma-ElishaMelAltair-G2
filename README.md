@@ -3,111 +3,113 @@
 [![Django](https://img.shields.io/badge/Django-6.1-0C4B33?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/Tests-18%20Passed-emerald?style=for-the-badge&logo=pytest&logoColor=white)]()
+[![Tests](https://img.shields.io/badge/Tests-35%20Passed-emerald?style=for-the-badge&logo=pytest&logoColor=white)]()
 
 **BorrowTech** is a web-based laboratory equipment borrowing and inventory management platform designed for university IT departments. It replaces manual paper logbooks by enabling IT students to check live hardware availability and submit digital reservations, while giving lab custodians an automated dashboard to manage approvals, track returns, and maintain an accurate asset audit trail.
 
-> **Project Phase:** IM2 Project Development 1 – Account Feature  
+> **Project Phase:** IM2 Project Development 2 – Core Feature (Vertical Slice)  
 > **Repository:** `BorrowTech-Narisma-ElishaMelAltair-G2`  
 > **Student:** Elisha Mel Altair Narisma  
 > **Section:** G2  
 
 ---
 
-## 🚀 Key Features Built in Phase 1: Account Feature
+## 🌟 Core Feature: Digital Laboratory Equipment Borrowing & Return Lifecycle
 
-### 1. Account Registration
-- **Dynamic Registration Form:** Accessible to students and lab personnel with custom university fields (Student/Staff ID, Department, Year Level, Contact Number, and Role).
-- **Strict Input Validation:** Enforces required fields, email format verification, uniqueness check for both username and email, and password confirmation matching.
-- **Secure Password Hashing:** Utilizes Django's PBKDF2/SHA256 password hashing. Plaintext passwords are never stored.
-- **Feedback & Notifications:** Real-time feedback with colored dismissal alerts for both success and validation error states.
-
-### 2. Login & Logout Authentication Flow
-- **Flexible Credential Login:** Supports authenticating with either **Username OR Email Address**.
-- **Error Handling:** Shows clear, security-conscious error alerts on invalid credentials without leaking internal state.
-- **Session Management:** Secure login and logout flows that completely flush sessions and cookies upon sign-out.
-- **Route Protection:** `@login_required` decorators ensure unauthenticated requests to protected pages are redirected to the login page with a safe `?next=` return URL.
-
-### 3. Role-Based User Dashboards
-The system features two distinct, role-based workflows tailored to university laboratory operations:
-- **IT Student Dashboard (`/dashboard/student/`):**
-  - Live hardware availability catalog (Arduino Kits, Raspberry Pi 4, Fluke Multimeters, Cisco Switches, Oscilloscopes).
-  - Active digital reservation status tracker (Active Loan, Pending Approval, Returned).
-  - Borrowing quota indicator and university IT lab policies.
-- **Laboratory Custodian Console (`/dashboard/custodian/`):**
-  - Real-time inventory overview (total equipment units, available units, active loans, overdue items).
-  - Pending reservation approval queue with instantaneous Approve/Reject actions.
-  - University asset audit trail logging handovers, condition inspections, and return verifications.
-- **Strict URL Protection:** Enforced via custom `@student_required` and `@custodian_required` decorators. A student typing the custodian URL (or vice-versa) is immediately blocked, redirected to their authorized dashboard, and presented with an **Access Denied** alert.
-
-### 4. User Profile Management (`/profile/`)
-- Logged-in users can view their comprehensive profile data (Role, Student ID, Contact Number, Department, Year Level, Registration Date, and Last Login).
-- Users can update their profile information and upload custom avatar photos (`/media/profile_photos/`).
-- **Privacy & Security Boundary:** Users can **only view and edit their own profile** (`request.user`).
-- Built-in secure password change feature (`/profile/change-password/`) maintaining authenticated session integrity.
+The primary capability of BorrowTech is a complete vertical slice of the laboratory borrowing and return lifecycle:
+- **Full Working UI:** Users can browse the live hardware catalog, submit digital loan requests, inspect passes, and manage the full handover and return inspection process directly in the web UI.
+- **Data Persistence:** All records and transactions are stored in PostgreSQL / Supabase with strict relational integrity (`ForeignKey` to `User` and `Equipment`).
+- **Complete CRUD Operations:**
+  - **Create:** IT Students submit digital equipment reservations (`/reservations/create/`). Custodians register new laboratory hardware assets (`/equipment/add/`).
+  - **Read:** Live equipment catalog with keyword and category search (`/equipment/`), student personal loan history (`/reservations/my/`), digital equipment pass receipt (`/reservations/<id>/`), and custodian master loan queue (`/reservations/queue/`).
+  - **Update:** Students can edit their pending reservation requests (`/reservations/<id>/edit/`). Custodians execute workflow state changes: **Approve**, **Reject** with reason, **Handover/Issue** (deducting inventory), and **Process Return** (inspecting hardware condition and restoring inventory).
+  - **Delete:** Students can cancel their pending/approved reservations (`/reservations/<id>/cancel/`). Custodians can decommission or delete hardware assets (`/equipment/<id>/delete/`).
+- **Business Rule Enforcement:**
+  - **Stock Availability:** Requested quantity cannot exceed available inventory units.
+  - **Concurrent Loan Limit:** Students are restricted to a maximum of 3 concurrent active or pending equipment items.
+  - **Loan Duration:** Enforces a maximum 7-calendar-day borrowing period per university policy.
+  - **Cross-User Privacy:** Students can only view, edit, or cancel their own reservations.
+  - **Stock Synchronization:** Automated database transaction decrements stock upon hardware handover and restores it upon return inspection.
 
 ---
 
-## 🛠️ Technology Stack
-
-| Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Backend & Frontend** | **Full Stack Django 6.1** | Server-rendered Django templates with template inheritance |
-| **Database** | **PostgreSQL / Supabase** | Production-ready PostgreSQL database with connection pooling |
-| **Styling** | **Tailwind CSS & FontAwesome** | Responsive modern UI with university IT lab branding |
-| **Authentication** | **Django Auth + Custom User** | Custom `accounts.User` model inheriting from `AbstractUser` |
-| **Environment** | **Python Dotenv & dj-database-url** | 12-factor configuration via `.env` file |
+## 🛡️ Standard Features (from Project Development 1)
+- **Account Registration:** Full input validation, unique email/username, matching password confirmation, role selection (IT Student vs Lab Custodian), and hashed password storage using Django Auth.
+- **Login / Logout:** Supports dual authentication with **Username OR Email**, displays clear error alerts, protects routes via `@login_required`, and cleanly flushes sessions upon sign-out.
+- **Role-Based User Dashboards:** Dedicated dashboards for IT Students (`/dashboard/student/`) and Laboratory Custodians (`/dashboard/custodian/`) with custom authorization decorators (`@student_required`, `@custodian_required`) blocking cross-role URL tampering.
+- **User Profile Management:** View personal account details, update information, and upload custom profile photos (`/profile/`).
 
 ---
 
-## 📋 Repository Structure
+## 🏗️ Relational Data Models
 
-```text
-BorrowTech-Narisma-ElishaMelAltair-G2/
-├── accounts/
-│   ├── management/
-│   │   └── commands/
-│   │       └── seed_borrowtech.py     # Seeds test accounts for both roles
-│   ├── migrations/
-│   │   └── 0001_initial.py            # Initial Custom User migration
-│   ├── admin.py                       # Django Admin configuration for User
-│   ├── apps.py                        # App configuration
-│   ├── decorators.py                  # Strict role authorization decorators
-│   ├── forms.py                       # Registration, Login, Profile & Password forms
-│   ├── models.py                      # Custom User model (roles, ID, contact, avatar)
-│   ├── tests.py                       # Comprehensive 18-case test suite
-│   ├── urls.py                        # Account routing paths
-│   └── views.py                       # View logic for auth, dashboards, and profile
-├── borrowtech_project/
-│   ├── asgi.py
-│   ├── settings.py                    # Project settings (PostgreSQL/Supabase ready)
-│   ├── urls.py                        # Main URL dispatcher
-│   └── wsgi.py
-├── templates/
-│   ├── base.html                      # Base layout with navbar, alerts, footer
-│   └── accounts/
-│       ├── change_password.html       # Change password form
-│       ├── custodian_dashboard.html   # Role 2: Custodian Console
-│       ├── home.html                  # Landing page
-│       ├── login.html                 # Login page
-│       ├── profile.html               # User profile view & update
-│       ├── register.html              # Registration form
-│       └── student_dashboard.html     # Role 1: Student Dashboard
-├── .env.example                       # Sample environment file
-├── .gitignore                         # Excludes venv, .env, media, __pycache__
-├── manage.py                          # Django management script
-├── README.md                          # Comprehensive project documentation
-└── requirements.txt                   # Frozen dependencies
+```mermaid
+erDiagram
+    USER ||--o{ BORROW_RESERVATION : "submits (borrower)"
+    USER ||--o{ BORROW_RESERVATION : "inspects (inspected_by)"
+    CATEGORY ||--o{ EQUIPMENT : "classifies"
+    EQUIPMENT ||--o{ BORROW_RESERVATION : "reserved in"
+
+    USER {
+        int id PK
+        string username
+        string email
+        string role "student | custodian"
+        string student_id
+        string contact_number
+        string department
+    }
+
+    CATEGORY {
+        int id PK
+        string name
+        string slug
+        string icon
+    }
+
+    EQUIPMENT {
+        int id PK
+        string name
+        string asset_code
+        int category_id FK
+        int total_quantity
+        int available_quantity
+        string condition
+        string storage_location
+    }
+
+    BORROW_RESERVATION {
+        int id PK
+        int borrower_id FK
+        int equipment_id FK
+        string reservation_code
+        int quantity
+        date start_date
+        date expected_return_date
+        datetime actual_return_date
+        string status "PENDING|APPROVED|ISSUED|RETURNED|REJECTED|CANCELLED"
+        string return_condition "OPERATIONAL|DAMAGED|INCOMPLETE"
+    }
 ```
 
 ---
 
-## ⚙️ Setup & Installation Guide
+## 🌿 Git Branching Strategy & Workflow
 
-### Prerequisites
-- Python 3.12+
-- Git
-- PostgreSQL or a free [Supabase](https://supabase.com/) project
+This project adheres to the Gitflow branching strategy with pull request merges:
+- **`main`**: Production-ready, stable releases only. Direct commits prohibited.
+- **`develop`**: Central integration branch.
+- **`feature/<name>`**: Individual feature branches merged into `develop` via non-fast-forward merge commits (`--no-ff`).
+
+| Branch | Merged Into | PR Merge Commit | Features Included |
+| :--- | :--- | :--- | :--- |
+| **`feature/equipment-inventory`** | `develop` | `Merge pull request #1` | Equipment and Category data models, stock management, live catalog, and CRUD templates. |
+| **`feature/borrowing-reservations`** | `develop` | `Merge pull request #2` | End-to-end borrowing reservation flow, custodian approval queue, handover stock deduction, and return inspection. |
+| **`develop`** | `main` | `Merge pull request #3` | Project Development 2 Core Feature increment release and documentation. |
+
+---
+
+## ⚙️ Setup & Installation Guide
 
 ### 1. Clone the Repository
 ```bash
@@ -131,67 +133,46 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure Environment Variables (`.env`)
-Copy `.env.example` to `.env`:
+### 4. Configure Database (`.env`)
+Create a `.env` file based on `.env.example`:
 ```bash
 cp .env.example .env
 ```
-
-Open `.env` and configure your secret key and **PostgreSQL / Supabase** connection string:
-
-#### For Supabase (Recommended Cloud PostgreSQL):
-1. Create a project at [supabase.com](https://supabase.com).
-2. Go to **Project Settings** > **Database** > **Connection String** > **URI**.
-3. Set `DATABASE_URL` in `.env`:
+Set your PostgreSQL or Supabase URI:
 ```env
 SECRET_KEY=your-django-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
-DATABASE_URL=postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE_URL=postgresql://postgres:[PASSWORD]@[HOST]:[PORT]/[DATABASE]?sslmode=require
 ```
 
-#### For Local PostgreSQL:
-```env
-SECRET_KEY=your-django-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
-DATABASE_URL=postgresql://postgres:your_password@localhost:5432/borrowtech_db
-```
-
-### 5. Run Database Migrations
+### 5. Run Migrations & Seed Demo Data
 ```bash
 python manage.py migrate
-```
-
-### 6. Seed Demo Laboratory Accounts
-Run the built-in seeding command to populate test accounts for both roles:
-```bash
 python manage.py seed_borrowtech
 ```
 
-### 7. Run the Development Server
+### 6. Start the Server
 ```bash
 python manage.py runserver
 ```
-Visit `http://127.0.0.1:8000/` in your browser.
+Navigate to `http://127.0.0.1:8000/`.
 
 ---
 
-## 🔑 Demo Account Credentials
+## 🔑 Demo Test Accounts
 
 | Role | Username | Password | Purpose |
 | :--- | :--- | :--- | :--- |
-| **IT Student** | `it_student` | `StudentPass2026!` | Explore hardware catalog, active loans, and student dashboard |
-| **Lab Custodian** | `lab_custodian` | `CustodianPass2026!` | Manage pending requests, equipment inventory, and audit trail |
-| **Superuser (Admin)** | `admin` | `AdminPass2026!` | Full administrative access to Django admin at `/admin/` |
+| **IT Student** | `it_student` | `StudentPass2026!` | Browse hardware catalog, submit digital reservations, view personal loans |
+| **Lab Custodian** | `lab_custodian` | `CustodianPass2026!` | Approve/reject requests, issue equipment handovers, inspect returns |
+| **Superuser (Admin)** | `admin` | `AdminPass2026!` | Administrative management via Django admin (`/admin/`) |
 
 ---
 
-## 🧪 Automated Unit Testing
+## 🧪 Automated Testing (35 Tests Passing)
 
-A comprehensive test suite of **18 test cases** covering registration validation, authentication, role authorization, and profile management is included.
-
-Run tests using:
+Execute the full automated test suite covering authentication, equipment inventory, and borrowing workflows:
 ```bash
 python manage.py test
 ```
@@ -199,23 +180,15 @@ python manage.py test
 Expected output:
 ```text
 Creating test database for alias 'default'...
-..................
+...................................
 ----------------------------------------------------------------------
-Ran 18 tests in 0.85s
+Ran 35 tests in 1.45s
 
 OK
 ```
 
 ---
 
-## 📝 Git Commit Standards (Conventional Commits)
-This repository strictly follows the **Conventional Commits** specification:
-- `feat(accounts): implement custom user model with role-based system`
-- `feat(accounts): implement user registration with validation and password hashing`
-- `feat(accounts): implement authentication flow with login, logout, and redirection`
-- `feat(accounts): build role-based dashboards with strict URL authorization for Student and Custodian`
-- `feat(accounts): create user profile view and edit functionality with avatar upload`
-- `feat(ui): design modern, responsive UI templates for university laboratory theme`
-- `docs: add comprehensive README with setup instructions, Supabase/PostgreSQL guide, and project documentation`
-- `test: add unit tests for registration, authentication, role authorization, and profile management`
-- `chore: add demo seeding management command and database migrations`
+## 📄 Implementation Report
+The official completion report is available in the repository at:  
+[`docs/BorrowTech-Narisma-ElishaMelAltair-G2-PD2.pdf`](docs/BorrowTech-Narisma-ElishaMelAltair-G2-PD2.pdf)

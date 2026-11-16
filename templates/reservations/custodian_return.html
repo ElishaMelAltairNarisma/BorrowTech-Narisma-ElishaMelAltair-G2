@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Process Return {{ reservation.reservation_code }} - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto px-4 sm:px-6">
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 p-6 sm:p-8 text-white">
+            <div class="flex items-center space-x-3 mb-1">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300">
+                    <i class="fa-solid fa-rotate-left text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Process Equipment Return</h1>
+                    <p class="text-slate-300 text-xs sm:text-sm mt-0.5">{{ reservation.reservation_code }} &bull; {{ reservation.borrower.get_full_name|default:reservation.borrower.username }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Body -->
+        <form method="post" class="p-6 sm:p-8 space-y-5" novalidate>
+            {% csrf_token %}
+
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                <div><span class="text-slate-400">Student:</span> <strong class="text-slate-800">{{ reservation.borrower.get_full_name|default:reservation.borrower.username }}</strong> ({{ reservation.borrower.student_id|default:"N/A" }})</div>
+                <div><span class="text-slate-400">Equipment:</span> <strong class="text-slate-800">{{ reservation.equipment.name }}</strong> ({{ reservation.quantity }} unit(s))</div>
+                <div><span class="text-slate-400">Loan Period:</span> <span class="text-slate-700">{{ reservation.start_date|date:"M d" }} to {{ reservation.expected_return_date|date:"M d, Y" }}</span></div>
+            </div>
+
+            <div>
+                <label for="{{ form.return_condition.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Hardware Condition Inspection <span class="text-rose-500">*</span>
+                </label>
+                {{ form.return_condition }}
+                {% if form.return_condition.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.return_condition.errors.0 }}</p>
+                {% endif %}
+                <p class="text-[11px] text-slate-500 mt-1">If marked damaged, the item will automatically be flagged for maintenance.</p>
+            </div>
+
+            <div>
+                <label for="{{ form.custodian_remarks.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Inspection Remarks / Notes
+                </label>
+                {{ form.custodian_remarks }}
+                {% if form.custodian_remarks.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.custodian_remarks.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="pt-3 flex items-center gap-3">
+                <button type="submit" class="flex-grow py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md transition">
+                    <i class="fa-solid fa-check mr-1.5"></i> Complete Return & Restore Stock
+                </button>
+                <a href="{% url 'custodian_queue' %}" class="py-3 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.name }} - BorrowTech Equipment Details{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <!-- Breadcrumb & Back -->
+    <div class="flex items-center justify-between">
+        <a href="{% url 'equipment_list' %}" class="inline-flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Equipment Catalog
+        </a>
+        <span class="text-xs font-mono text-slate-400">{{ item.asset_code }}</span>
+    </div>
+
+    <!-- Main Detail Card -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 sm:p-8 text-white">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-mono font-bold text-cyan-300 bg-cyan-950 px-2.5 py-0.5 rounded border border-cyan-500/40">
+                            {{ item.asset_code }}
+                        </span>
+                        <span class="text-xs text-slate-300 font-medium">
+                            <i class="fa-solid {{ item.category.icon }} text-blue-400 mr-1"></i> {{ item.category.name }}
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">{{ item.name }}</h1>
+                    {% if item.model_number %}
+                        <p class="text-xs text-slate-400 mt-1">Model / Part No: <span class="text-slate-200 font-mono">{{ item.model_number }}</span></p>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <span class="px-3.5 py-1.5 rounded-full text-xs font-semibold
+                        {% if item.status_display.color == 'emerald' %}
+                            bg-emerald-900 text-emerald-200 border border-emerald-500/40
+                        {% elif item.status_display.color == 'amber' %}
+                            bg-amber-900 text-amber-200 border border-amber-500/40
+                        {% else %}
+                            bg-rose-900 text-rose-200 border border-rose-500/40
+                        {% endif %}">
+                        {{ item.status_display.text }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Left: Description and Details (2 cols) -->
+            <div class="md:col-span-2 space-y-6">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Technical Specifications & Overview</h2>
+                    <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        {{ item.description }}
+                    </p>
+                </div>
+
+                <!-- Storage Location -->
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-3">Laboratory Location</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                                <i class="fa-solid fa-door-open"></i>
+                            </div>
+                            <div>
+                                <span class="text-[11px] uppercase font-semibold text-slate-400 block">Assigned Room</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800">{{ item.laboratory_room }}</span>
+                            </div>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                                <i class="fa-solid fa-box-archive"></i>
+                            </div>
+                            <div>
+                                <span class="text-[11px] uppercase font-semibold text-slate-400 block">Locker / Cabinet</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800">{{ item.storage_location }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usage Policy -->
+                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 text-xs space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-blue-800">
+                        <i class="fa-solid fa-circle-info"></i> University Laboratory Borrowing Rules
+                    </div>
+                    <p class="text-blue-900/80">
+                        Standard loan duration is 48 hours. Items must be returned in the same condition with all associated accessories intact. Custodians inspect gear upon return.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right: Stock & Action Panel (1 col) -->
+            <div class="space-y-6">
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-5">
+                    <h3 class="text-sm font-bold text-slate-900">Inventory Status</h3>
+
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="text-slate-500">Available Stock</span>
+                            <span class="font-bold text-slate-900 font-mono">{{ item.available_quantity }} / {{ item.total_quantity }} units</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {% widthratio item.available_quantity item.total_quantity 100 %}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-200 space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Equipment Condition:</span>
+                            <span class="font-semibold text-slate-800">{{ item.get_condition_display }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Inventory Registered:</span>
+                            <span class="text-slate-700">{{ item.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Last Audit Check:</span>
+                            <span class="text-slate-700">{{ item.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Main CTA -->
+                    <div class="pt-4 border-t border-slate-200 space-y-2">
+                        {% if item.is_available %}
+                            <a href="/reservations/create/?equipment={{ item.pk }}" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-center text-sm shadow-md transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-calendar-check"></i> Submit Reservation Request
+                            </a>
+                        {% else %}
+                            <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-200 text-slate-400 font-semibold text-center text-sm cursor-not-allowed">
+                                Currently Unavailable
+                            </button>
+                        {% endif %}
+
+                        <!-- Custodian Controls -->
+                        {% if user.is_custodian_user %}
+                            <div class="pt-2 flex items-center gap-2">
+                                <a href="{% url 'equipment_update' pk=item.pk %}" class="flex-grow py-2.5 px-3 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-semibold text-center transition">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Asset
+                                </a>
+                                <a href="{% url 'equipment_delete' pk=item.pk %}" class="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition" title="Delete Equipment">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
