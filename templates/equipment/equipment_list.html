@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Laboratory Equipment Catalog - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-cyan-300 text-xs font-semibold mb-2 border border-blue-400/30">
+                <i class="fa-solid fa-microchip"></i> IT Laboratory Asset Inventory
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Hardware Equipment Catalog</h1>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                Browse available laboratory hardware, microcontrollers, testing gear, and network devices.
+            </p>
+        </div>
+
+        {% if user.is_custodian_user %}
+            <div>
+                <a href="{% url 'equipment_create' %}" class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-purple-600/30 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add New Equipment
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-sm">
+        <form method="get" class="flex flex-col md:flex-row gap-3">
+            <div class="relative flex-grow">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                {{ filter_form.q }}
+            </div>
+            <div class="flex flex-wrap sm:flex-nowrap gap-3">
+                {{ filter_form.category }}
+                {{ filter_form.availability }}
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow transition flex items-center gap-1.5">
+                    Filter
+                </button>
+                {% if request.GET.q or request.GET.category or request.GET.availability %}
+                    <a href="{% url 'equipment_list' %}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs sm:text-sm font-medium transition flex items-center">
+                        Clear
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Equipment Grid -->
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                Showing <strong class="text-slate-800">{{ total_count }}</strong> laboratory equipment item{{ total_count|pluralize }}
+            </p>
+            <span class="text-xs font-mono text-slate-400">Live Inventory</span>
+        </div>
+
+        {% if equipment_list %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for item in equipment_list %}
+                    <div class="bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400 hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden group">
+                        <div class="p-5 sm:p-6">
+                            <!-- Top metadata -->
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200/70">
+                                    {{ item.asset_code }}
+                                </span>
+                                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full
+                                    {% if item.status_display.color == 'emerald' %}
+                                        bg-emerald-50 text-emerald-700 border border-emerald-200
+                                    {% elif item.status_display.color == 'amber' %}
+                                        bg-amber-50 text-amber-700 border border-amber-200
+                                    {% else %}
+                                        bg-rose-50 text-rose-700 border border-rose-200
+                                    {% endif %}">
+                                    {{ item.status_display.text }}
+                                </span>
+                            </div>
+
+                            <!-- Name & Category -->
+                            <h3 class="text-base font-bold text-slate-900 group-hover:text-blue-600 transition mb-1">
+                                <a href="{% url 'equipment_detail' pk=item.pk %}">{{ item.name }}</a>
+                            </h3>
+                            <p class="text-xs text-slate-500 flex items-center gap-1.5 mb-3">
+                                <i class="fa-solid {{ item.category.icon }} text-blue-500 text-[11px]"></i>
+                                {{ item.category.name }}
+                            </p>
+
+                            <!-- Description Snippet -->
+                            <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">
+                                {{ item.description }}
+                            </p>
+
+                            <!-- Location Info -->
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 space-y-0.5">
+                                <div><i class="fa-solid fa-door-open mr-1 text-slate-400"></i> {{ item.laboratory_room }}</div>
+                                <div><i class="fa-solid fa-box-archive mr-1 text-slate-400"></i> {{ item.storage_location }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Actions -->
+                        <div class="p-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+                            <div class="text-xs">
+                                <span class="text-slate-500">Available:</span>
+                                <strong class="text-slate-900 font-mono ml-1">{{ item.available_quantity }}/{{ item.total_quantity }}</strong>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'equipment_detail' pk=item.pk %}" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+                                    Details
+                                </a>
+                                {% if item.is_available %}
+                                    <a href="/reservations/create/?equipment={{ item.pk }}" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1">
+                                        <i class="fa-solid fa-plus text-[10px]"></i> Reserve
+                                    </a>
+                                {% endif %}
+                                {% if user.is_custodian_user %}
+                                    <a href="{% url 'equipment_update' pk=item.pk %}" class="px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold transition" title="Edit Hardware Asset">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="p-12 text-center bg-white rounded-2xl border border-slate-200/90 shadow-sm">
+                <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-800">No laboratory equipment found</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                    Try adjusting your search keywords, clearing your filter options, or registering new equipment.
+                </p>
+                <div class="mt-4">
+                    <a href="{% url 'equipment_list' %}" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow transition">
+                        View All Equipment
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
