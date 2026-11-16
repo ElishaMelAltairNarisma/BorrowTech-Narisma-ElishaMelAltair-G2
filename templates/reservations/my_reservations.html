@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}My Equipment Reservations - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-slate-800">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-cyan-300 text-xs font-semibold mb-2 border border-blue-400/30">
+                <i class="fa-solid fa-boxes-packing"></i> Student Laboratory Records
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">My Equipment Reservations & Loans</h1>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                Track digital reservation status, active hardware checkouts, and laboratory return deadlines.
+            </p>
+        </div>
+
+        <div>
+            <a href="{% url 'reservation_create' %}" class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-blue-600/30 transition flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> New Reservation
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+        <a href="{% url 'my_reservations' %}?status=all" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_filter == 'all' %}bg-blue-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            All Records
+        </a>
+        <a href="{% url 'my_reservations' %}?status=pending" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_filter == 'pending' %}bg-amber-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            Pending Approval
+        </a>
+        <a href="{% url 'my_reservations' %}?status=active" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_filter == 'active' %}bg-purple-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            Active Loans
+        </a>
+        <a href="{% url 'my_reservations' %}?status=completed" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_filter == 'completed' %}bg-emerald-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            Returned & Cleared
+        </a>
+        <a href="{% url 'my_reservations' %}?status=archived" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_filter == 'archived' %}bg-slate-700 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            Cancelled / Rejected
+        </a>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200/80 text-xs font-semibold uppercase text-slate-500 tracking-wider">
+                        <th class="py-3 px-6">Tracking Code</th>
+                        <th class="py-3 px-6">Equipment Item</th>
+                        <th class="py-3 px-6">Quantity</th>
+                        <th class="py-3 px-6">Loan Period</th>
+                        <th class="py-3 px-6">Status</th>
+                        <th class="py-3 px-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% if reservations %}
+                        {% for res in reservations %}
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">
+                                    <a href="{% url 'reservation_detail' pk=res.pk %}" class="text-blue-600 hover:underline">
+                                        {{ res.reservation_code }}
+                                    </a>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="font-bold text-slate-900 block">{{ res.equipment.name }}</span>
+                                    <span class="text-xs text-slate-500 font-mono">{{ res.equipment.asset_code }}</span>
+                                </td>
+                                <td class="py-4 px-6 text-xs text-slate-700 font-mono">
+                                    {{ res.quantity }} unit(s)
+                                </td>
+                                <td class="py-4 px-6 text-xs text-slate-600">
+                                    <span class="block">{{ res.start_date|date:"M d, Y" }} &rarr; {{ res.expected_return_date|date:"M d, Y" }}</span>
+                                    {% if res.is_overdue %}
+                                        <span class="text-[11px] font-bold text-rose-600">Overdue! Please return to counter.</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ res.status_badge.bg }} {{ res.status_badge.text_color }} border {{ res.status_badge.border }}">
+                                        {{ res.status_badge.text }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6 text-right space-x-1">
+                                    <a href="{% url 'reservation_detail' pk=res.pk %}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition" title="View Digital Pass">
+                                        <i class="fa-solid fa-file-lines"></i>
+                                    </a>
+                                    {% if res.can_edit %}
+                                        <a href="{% url 'reservation_update' pk=res.pk %}" class="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition" title="Edit Pending Request">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if res.can_cancel %}
+                                        <a href="{% url 'reservation_cancel' pk=res.pk %}" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition" title="Cancel Reservation">
+                                            <i class="fa-solid fa-ban"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="py-12 text-center text-xs text-slate-500">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-xl mb-3">
+                                    <i class="fa-solid fa-inbox"></i>
+                                </div>
+                                <p class="font-medium text-slate-700 text-sm">No reservations found under this filter</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Browse the catalog to request university laboratory equipment.</p>
+                                <div class="mt-4">
+                                    <a href="{% url 'reservation_create' %}" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold shadow transition">
+                                        Create First Reservation
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
