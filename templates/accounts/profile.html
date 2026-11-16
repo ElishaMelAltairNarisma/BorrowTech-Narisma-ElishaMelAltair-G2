@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
+    <!-- Profile Header / Overview Card -->
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-6 sm:p-8 text-white">
+            <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+                <!-- Avatar -->
+                <div class="relative group">
+                    <img src="{{ user.avatar_url }}" alt="{{ user.username }}" class="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl border-4 border-slate-800 shadow-xl object-cover">
+                    {% if user.profile_photo %}
+                        <span class="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-900" title="Custom Photo Uploaded"></span>
+                    {% endif %}
+                </div>
+
+                <!-- Basic Info -->
+                <div class="flex-grow">
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">{{ user.get_full_name|default:user.username }}</h1>
+                        {% if user.is_custodian_user %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-900 text-purple-200 border border-purple-500/40">
+                                <i class="fa-solid fa-shield-halved mr-1"></i> Lab Custodian
+                            </span>
+                        {% else %}
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-900 text-cyan-200 border border-cyan-500/40">
+                                <i class="fa-solid fa-graduation-cap mr-1"></i> IT Student
+                            </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-sm text-slate-300 font-mono">@{{ user.username }} &bull; {{ user.email }}</p>
+                    <p class="text-xs text-slate-400 mt-2">
+                        <i class="fa-solid fa-id-badge mr-1"></i> ID: <span class="font-mono text-slate-200">{{ user.student_id|default:"Not specified" }}</span>
+                        &bull;
+                        <i class="fa-solid fa-building-columns ml-2 mr-1"></i> {{ user.department }}
+                    </p>
+                </div>
+
+                <!-- Password Change Link -->
+                <div class="sm:self-start">
+                    <a href="{% url 'change_password' %}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-key"></i> Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form: Update Profile Details -->
+        <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data" class="p-6 sm:p-8 space-y-6" novalidate>
+            {% csrf_token %}
+
+            <div class="border-b border-slate-100 pb-4">
+                <h2 class="text-lg font-bold text-slate-900">Update Profile Details</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Keep your laboratory account records and contact details current.</p>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-sm space-y-1">
+                    {% for error in form.non_field_errors %}
+                        <p class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-exclamation text-rose-600"></i> {{ error }}
+                        </p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Form Fields -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        First Name <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.first_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Last Name <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Email Address <span class="text-rose-500">*</span>
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.contact_number.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Contact / Mobile Number
+                    </label>
+                    {{ form.contact_number }}
+                    {% if form.contact_number.errors %}
+                        <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.contact_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label for="{{ form.student_id.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Student / Staff ID Number
+                    </label>
+                    {{ form.student_id }}
+                    {% if form.student_id.errors %}
+                        <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.student_id.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.year_level.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Year Level / Standing
+                    </label>
+                    {{ form.year_level }}
+                    {% if form.year_level.errors %}
+                        <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.year_level.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label for="{{ form.department.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    College / Department / Unit
+                </label>
+                {{ form.department }}
+                {% if form.department.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.department.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Profile Photo Upload -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <label for="{{ form.profile_photo.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Profile Photo / Avatar
+                </label>
+                {{ form.profile_photo }}
+                {% if form.profile_photo.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.profile_photo.errors.0 }}</p>
+                {% endif %}
+                <p class="text-[11px] text-slate-500 mt-1.5">Upload a square image (PNG, JPG, or WEBP). If none is uploaded, your personalized initials avatar will be shown.</p>
+            </div>
+
+            <!-- Read-only Security Metrics -->
+            <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
+                <div>
+                    <span>Account Role:</span>
+                    <strong class="text-slate-800 ml-1">{{ user.get_role_display }}</strong>
+                </div>
+                <div>
+                    <span>Date Joined:</span>
+                    <strong class="text-slate-800 ml-1">{{ user.date_joined|date:"M d, Y" }}</strong>
+                </div>
+                <div>
+                    <span>Last Login:</span>
+                    <strong class="text-slate-800 ml-1">{{ user.last_login|date:"M d, Y H:i"|default:"First Session" }}</strong>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+                <button type="submit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}IT Student Dashboard - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <!-- Header Greeting Banner -->
+    <div class="rounded-3xl bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 p-6 sm:p-8 text-white shadow-xl border border-blue-950">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center space-x-4">
+                <img src="{{ user.avatar_url }}" alt="{{ user.username }}" class="w-16 h-16 rounded-2xl border-2 border-cyan-400 shadow-md object-cover">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-950 text-cyan-300 border border-cyan-500/40">
+                            <i class="fa-solid fa-graduation-cap mr-1"></i> IT Student Portal
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono">{{ user.student_id|default:"ID Not Set" }}</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold mt-1 text-white">
+                        Welcome, {{ user.get_full_name|default:user.username }}!
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                        {{ user.department }} &bull; {{ user.year_level }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action -->
+            <div class="flex items-center gap-3">
+                <a href="{% url 'profile' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-user-pen"></i> Edit Profile
+                </a>
+                <a href="#hardware-catalog" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass"></i> Browse Hardware
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Metric Overview Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Loans</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">1 Item</p>
+                <p class="text-xs text-emerald-600 font-medium mt-1">Due tomorrow 5:00 PM</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-boxes-packing"></i>
+            </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Requests</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">1 Request</p>
+                <p class="text-xs text-amber-600 font-medium mt-1">Awaiting Lab Custodian</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Borrowing Quota</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">2 Left</p>
+                <p class="text-xs text-slate-500 font-medium mt-1">Max 3 concurrent items</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account Standing</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-1">Clear</p>
+                <p class="text-xs text-slate-500 font-medium mt-1">No overdue laboratory fines</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-shield-heart"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Reservations & Borrowing History -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">My Equipment Reservations & Loans</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Track your active lab hardware checkouts and approval statuses</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                Digital Paperless Tracking
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200/80 text-xs font-semibold uppercase text-slate-500 tracking-wider">
+                        <th class="py-3 px-6">Reservation ID</th>
+                        <th class="py-3 px-6">Equipment Item</th>
+                        <th class="py-3 px-6">Date Requested</th>
+                        <th class="py-3 px-6">Due Date / Status</th>
+                        <th class="py-3 px-6">Action / Receipt</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for res in active_reservations %}
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">{{ res.id }}</td>
+                            <td class="py-4 px-6 font-medium text-slate-900">{{ res.item }}</td>
+                            <td class="py-4 px-6 text-slate-500 text-xs">{{ res.date }}</td>
+                            <td class="py-4 px-6">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                                    {% if res.status_color == 'emerald' %}
+                                        bg-emerald-50 text-emerald-700 border border-emerald-200
+                                    {% else %}
+                                        bg-amber-50 text-amber-700 border border-amber-200
+                                    {% endif %}">
+                                    {{ res.status }}
+                                </span>
+                                <span class="block text-[11px] text-slate-500 mt-0.5">{{ res.due_date }}</span>
+                            </td>
+                            <td class="py-4 px-6">
+                                <button class="text-xs font-medium text-blue-600 hover:text-blue-800 transition">
+                                    <i class="fa-solid fa-file-lines mr-1"></i> View Digital Pass
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Live Laboratory Hardware Availability Catalog -->
+    <div id="hardware-catalog" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+                <h2 class="text-lg sm:text-xl font-bold text-slate-900">Live Hardware Availability</h2>
+                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Real-time availability of University IT laboratory equipment</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Verified Inventory
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in equipment_list %}
+                <div class="p-5 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition bg-gradient-to-b from-white to-slate-50/50 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-mono text-[11px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{{ item.code }}</span>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full
+                                {% if item.badge_color == 'emerald' %}
+                                    bg-emerald-50 text-emerald-700 border border-emerald-200
+                                {% elif item.badge_color == 'amber' %}
+                                    bg-amber-50 text-amber-700 border border-amber-200
+                                {% else %}
+                                    bg-rose-50 text-rose-700 border border-rose-200
+                                {% endif %}">
+                                {{ item.status }}
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base mb-1">{{ item.name }}</h3>
+                        <p class="text-xs text-slate-500 mb-4">{{ item.category }}</p>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-500">Available:</span>
+                            <span class="text-sm font-bold text-slate-800 ml-1">{{ item.available }} / {{ item.total }}</span>
+                        </div>
+                        {% if item.available > 0 %}
+                            <button class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Request
+                            </button>
+                        {% else %}
+                            <button disabled class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-400 text-xs font-semibold cursor-not-allowed">
+                                Out of Stock
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Lab Rules Card -->
+    <div class="p-6 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950">
+        <div class="flex items-start space-x-3">
+            <i class="fa-solid fa-circle-info text-blue-600 text-xl mt-0.5"></i>
+            <div>
+                <h3 class="font-bold text-sm">BorrowTech University IT Laboratory Guidelines</h3>
+                <ul class="text-xs text-blue-900/80 mt-1 space-y-1 list-disc list-inside">
+                    <li>All equipment must be returned within 48 hours unless granted a capstone project extension.</li>
+                    <li>Inspect all components (breadboards, jumper cables, power adapters) before leaving the laboratory counter.</li>
+                    <li>Custodians must physically verify item condition upon return to update your digital clearance.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

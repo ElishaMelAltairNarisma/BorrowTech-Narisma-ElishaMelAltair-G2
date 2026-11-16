@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}BorrowTech - University IT Equipment Borrowing & Inventory System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white shadow-2xl p-8 sm:p-12 lg:p-16 mb-12 border border-slate-700/60">
+        <div class="relative z-10 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-6">
+                <i class="fa-solid fa-microchip"></i> Modern University IT Laboratory Platform
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-6">
+                Say Goodbye to Paper Logbooks with <span class="bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 bg-clip-text text-transparent">BorrowTech</span>.
+            </h1>
+            <p class="text-base sm:text-lg text-slate-300 mb-8 leading-relaxed">
+                Empowering IT students to check live hardware availability and request laboratory equipment online, while providing lab custodians with a centralized console for approvals, return tracking, and real-time asset audit trails.
+            </p>
+            <div class="flex flex-wrap items-center gap-4">
+                <a href="{% url 'register' %}" class="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-600/30 transition flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fa-solid fa-user-plus"></i> Create Student / Custodian Account
+                </a>
+                <a href="{% url 'login' %}" class="px-6 py-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold border border-slate-600 transition flex items-center gap-2 text-sm sm:text-base">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to Account
+                </a>
+            </div>
+        </div>
+
+        <!-- Decorative background glow -->
+        <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/4 top-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- Core Features Section -->
+    <div class="mb-14">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Tailored Laboratory Roles</h2>
+            <p class="text-sm sm:text-base text-slate-600 mt-2">Built specifically for the university IT department workflow with strict role-based dashboards.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Student Role Card -->
+            <div class="p-8 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl mb-5">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xl font-bold text-slate-900">IT Student (Borrower)</h3>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">Role 1</span>
+                </div>
+                <p class="text-slate-600 text-sm mb-6 leading-relaxed">
+                    Designed for enrolled college students conducting laboratory experiments, networking practicals, and capstone research.
+                </p>
+                <ul class="space-y-3 text-sm text-slate-600 mb-6">
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-check text-emerald-500"></i> Check live hardware & sensor module inventory status
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-check text-emerald-500"></i> Submit digital borrowing reservations in seconds
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-check text-emerald-500"></i> View active loans, due dates, and return reminders
+                    </li>
+                </ul>
+                <a href="{% url 'register' %}" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-700">
+                    Register as IT Student <i class="fa-solid fa-arrow-right ml-1.5 text-xs"></i>
+                </a>
+            </div>
+
+            <!-- Custodian Role Card -->
+            <div class="p-8 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl mb-5">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xl font-bold text-slate-900">Laboratory Custodian (Staff)</h3>
+                    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">Role 2</span>
+                </div>
+                <p class="text-slate-600 text-sm mb-6 leading-relaxed">
+                    Dedicated dashboard for lab engineers, laboratory custodians, and instructors managing equipment assets.
+                </p>
+                <ul class="space-y-3 text-sm text-slate-600 mb-6">
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-check text-purple-600"></i> Approve or reject incoming reservation requests
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-check text-purple-600"></i> Log equipment handovers and condition upon return
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-check text-purple-600"></i> Complete audit trail for damaged or overdue university items
+                    </li>
+                </ul>
+                <a href="{% url 'register' %}" class="inline-flex items-center text-sm font-semibold text-purple-600 hover:text-purple-700">
+                    Register as Custodian <i class="fa-solid fa-arrow-right ml-1.5 text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Preview Hardware Section -->
+    <div class="p-8 sm:p-10 rounded-2xl bg-slate-900 text-white mb-12 border border-slate-800">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h3 class="text-xl sm:text-2xl font-bold">University Hardware Inventory Sample</h3>
+                <p class="text-slate-400 text-sm mt-1">Live status tracking replaces handwritten physical log sheets.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-950/70 border border-emerald-800/80 px-3 py-1 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Live Tracking Active
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700">
+                <div class="text-xs font-mono text-cyan-400">EQ-ARD-010</div>
+                <div class="font-bold text-slate-100 mt-1">Arduino Uno R3 Kit</div>
+                <div class="text-xs text-slate-400 mt-1">12 / 15 Available</div>
+                <div class="mt-3 text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check"></i> Ready to Reserve
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700">
+                <div class="text-xs font-mono text-cyan-400">EQ-RPI-024</div>
+                <div class="font-bold text-slate-100 mt-1">Raspberry Pi 4 (8GB)</div>
+                <div class="text-xs text-slate-400 mt-1">4 / 8 Available</div>
+                <div class="mt-3 text-xs font-semibold text-amber-400 flex items-center gap-1">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Limited Units
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700">
+                <div class="text-xs font-mono text-cyan-400">EQ-NET-015</div>
+                <div class="font-bold text-slate-100 mt-1">Cisco 2960-X Switch</div>
+                <div class="text-xs text-slate-400 mt-1">0 / 4 Available</div>
+                <div class="mt-3 text-xs font-semibold text-rose-400 flex items-center gap-1">
+                    <i class="fa-solid fa-clock"></i> All Checked Out
+                </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-800/90 border border-slate-700">
+                <div class="text-xs font-mono text-cyan-400">EQ-FLK-003</div>
+                <div class="font-bold text-slate-100 mt-1">Fluke 87V Multimeter</div>
+                <div class="text-xs text-slate-400 mt-1">6 / 6 Available</div>
+                <div class="mt-3 text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check"></i> Ready to Reserve
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
