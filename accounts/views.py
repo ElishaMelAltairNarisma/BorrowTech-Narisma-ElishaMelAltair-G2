@@ -4,6 +4,8 @@ from django.contrib.auth import login, logout, authenticate, update_session_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils import timezone
+from django.db.models import Sum
 
 from .models import User
 from .forms import (
@@ -12,22 +14,20 @@ from .forms import (
     UserProfileUpdateForm,
 )
 from .decorators import student_required, custodian_required
+from equipment.models import Equipment
+from reservations.models import BorrowReservation
 
 
 def home_view(request):
     """Public landing page showcasing BorrowTech platform."""
     if request.user.is_authenticated:
         return redirect('dashboard_redirect')
-    return render(request, 'accounts/home.html')
+    featured_equipment = Equipment.objects.filter(is_active=True).select_related('category')[:4]
+    return render(request, 'accounts/home.html', {'featured_equipment': featured_equipment})
 
 
 def register_view(request):
-    """
-    Account Registration:
-    - Validates required fields, email format, unique username/email, password confirmation.
-    - Hashes password using Django's built-in authentication.
-    - Shows clear success or error messages.
-    """
+    """Account Registration with input validation, role selection, and hashed passwords."""
     if request.user.is_authenticated:
         return redirect('dashboard_redirect')
 
@@ -40,7 +40,6 @@ def register_view(request):
                 f"Account created successfully for {user.get_full_name() or user.username}! "
                 f"You have been registered as an {user.get_role_display()}."
             )
-            # Log in automatically upon registration
             login(request, user)
             return redirect(user.get_dashboard_url())
         else:
@@ -55,12 +54,7 @@ def register_view(request):
 
 
 def login_view(request):
-    """
-    User Login:
-    - Allows logging in with either Username or Email.
-    - Validates credentials and shows error messages on failure.
-    - Redirects authenticated user to their role-specific dashboard.
-    """
+    """Login view supporting Username or Email with error feedback."""
     if request.user.is_authenticated:
         return redirect('dashboard_redirect')
 
@@ -70,7 +64,6 @@ def login_view(request):
             username_or_email = form.cleaned_data.get('username_or_email').strip()
             password = form.cleaned_data.get('password')
 
-            # Find user by username or email
             user_obj = None
             if '@' in username_or_email:
                 user_obj = User.objects.filter(email__iexact=username_or_email).first()
@@ -107,10 +100,7 @@ def login_view(request):
 
 @login_required
 def logout_view(request):
-    """
-    User Logout:
-    - Ends user session and redirects to login with confirmation.
-    """
+    """Logs out user, clears session, and redirects to login."""
     user_name = request.user.get_full_name() or request.user.username
     logout(request)
     messages.info(request, f"Goodbye, {user_name}. You have been safely logged out of BorrowTech.")
@@ -127,83 +117,41 @@ def dashboard_redirect_view(request):
 def student_dashboard_view(request):
     """
     Role-Based Dashboard for IT Students:
-    - Equipment availability overview
-    - Student reservation requests & borrowing history
-    - Lab safety & borrowing policies
-    - Strict URL protection preventing custodian access
+    - Real-time hardware equipment availability from database.
+    - User's actual reservations and digital loans.
+    - Concurrent quota tracking (Max 3 items).
     """
-    # Sample hardware inventory data for university IT laboratory
-    featured_equipment = [
-        {
-            'name': 'Arduino Uno R3 Starter Kit',
-            'category': 'Embedded Systems & IoT',
-            'code': 'EQ-ARD-010',
-            'available': 12,
-            'total': 15,
-            'status': 'Available',
-            'badge_color': 'emerald',
-        },
-        {
-            'name': 'Raspberry Pi 4 Model B (8GB RAM)',
-            'category': 'Single Board Computers',
-            'code': 'EQ-RPI-024',
-            'available': 4,
-            'total': 8,
-            'status': 'Limited',
-            'badge_color': 'amber',
-        },
-        {
-            'name': 'Fluke 87V Industrial Multimeter',
-            'category': 'Testing & Measurement',
-            'code': 'EQ-FLK-003',
-            'available': 6,
-            'total': 6,
-            'status': 'Available',
-            'badge_color': 'emerald',
-        },
-        {
-            'name': 'Cisco Catalyst 2960-X Switch',
-            'category': 'Networking Laboratory',
-            'code': 'EQ-NET-015',
-            'available': 0,
-            'total': 4,
-            'status': 'Reserved / Checked Out',
-            'badge_color': 'red',
-        },
-        {
-            'name': 'Rigol DS1054Z Digital Oscilloscope',
-            'category': 'Signal Analysis',
-            'code': 'EQ-OSC-007',
-            'available': 3,
-            'total': 5,
-            'status': 'Available',
-            'badge_color': 'emerald',
-        },
-    ]
+    my_reservations = BorrowReservation.objects.filter(
+        borrower=request.user
+    ).select_related('equipment').order_by('-created_at')[:5]
 
-    active_reservations = [
-        {
-            'id': 'RES-2026-089',
-            'item': 'Raspberry Pi 4 Model B (8GB)',
-            'date': 'Today at 09:30 AM',
-            'due_date': 'Tomorrow at 05:00 PM',
-            'status': 'Active Loan',
-            'status_color': 'emerald',
-        },
-        {
-            'id': 'RES-2026-092',
-            'item': 'Fluke 87V Multimeter',
-            'date': 'Today at 01:15 PM',
-            'due_date': 'Awaiting Custodian Approval',
-            'status': 'Pending Approval',
-            'status_color': 'amber',
-        },
-    ]
+    active_loans_count = BorrowReservation.objects.filter(
+        borrower=request.user,
+        status=BorrowReservation.Status.ISSUED
+    ).count()
+
+    pending_count = BorrowReservation.objects.filter(
+        borrower=request.user,
+        status=BorrowReservation.Status.PENDING
+    ).count()
+
+    approved_count = BorrowReservation.objects.filter(
+        borrower=request.user,
+        status=BorrowReservation.Status.APPROVED
+    ).count()
+
+    quota_used = active_loans_count + pending_count + approved_count
+    quota_left = max(0, 3 - quota_used)
+
+    equipment_list = Equipment.objects.filter(is_active=True).select_related('category')[:6]
 
     context = {
         'role_title': 'IT Student Dashboard',
-        'equipment_list': featured_equipment,
-        'active_reservations': active_reservations,
+        'equipment_list': equipment_list,
+        'active_reservations': my_reservations,
+        'active_loans_count': active_loans_count,
+        'pending_count': pending_count,
+        'quota_left': quota_left,
     }
     return render(request, 'accounts/student_dashboard.html', context)
 
@@ -212,87 +160,47 @@ def student_dashboard_view(request):
 def custodian_dashboard_view(request):
     """
     Role-Based Dashboard for Laboratory Custodians:
-    - Equipment inventory summary and audit trail
-    - Pending reservation approvals queue
-    - Overdue returns tracking & alert notifications
-    - Strict URL protection preventing student access
+    - Live inventory totals, active loans, and overdue counts.
+    - Pending student reservation queue with quick actions.
+    - Real laboratory return inspection audit log.
     """
+    total_inventory = Equipment.objects.aggregate(Sum('total_quantity'))['total_quantity__sum'] or 0
+    available_items = Equipment.objects.aggregate(Sum('available_quantity'))['available_quantity__sum'] or 0
+    active_loans = BorrowReservation.objects.filter(status=BorrowReservation.Status.ISSUED).count()
+    pending_approvals = BorrowReservation.objects.filter(status=BorrowReservation.Status.PENDING).count()
+    overdue_returns = BorrowReservation.objects.filter(
+        status=BorrowReservation.Status.ISSUED,
+        expected_return_date__lt=timezone.now().date()
+    ).count()
+
     stats = {
-        'total_inventory': 148,
-        'available_items': 112,
-        'active_loans': 26,
-        'pending_approvals': 7,
-        'overdue_returns': 3,
+        'total_inventory': total_inventory,
+        'available_items': available_items,
+        'active_loans': active_loans,
+        'pending_approvals': pending_approvals,
+        'overdue_returns': overdue_returns,
     }
 
-    pending_queue = [
-        {
-            'req_id': 'REQ-2026-104',
-            'student_name': 'Juan Dela Cruz',
-            'student_id': '2024-IT-0142',
-            'equipment': 'Cisco 2960-X Switch (EQ-NET-015)',
-            'purpose': 'CCNA Laboratory Practical Exam #2',
-            'requested_at': '10 mins ago',
-            'duration': '4 Hours',
-        },
-        {
-            'req_id': 'REQ-2026-105',
-            'student_name': 'Maria Santos',
-            'student_id': '2023-CS-0091',
-            'equipment': 'Rigol Oscilloscope (EQ-OSC-007)',
-            'purpose': 'Capstone Hardware Circuit Testing',
-            'requested_at': '25 mins ago',
-            'duration': '2 Days',
-        },
-        {
-            'req_id': 'REQ-2026-106',
-            'student_name': 'Carlos Reyes',
-            'student_id': '2024-IT-0318',
-            'equipment': 'Arduino Starter Kit (EQ-ARD-010)',
-            'purpose': 'Embedded Systems Lab Session',
-            'requested_at': '1 hour ago',
-            'duration': '3 Hours',
-        },
-    ]
+    pending_queue = BorrowReservation.objects.filter(
+        status=BorrowReservation.Status.PENDING
+    ).select_related('equipment', 'borrower').order_by('-created_at')[:5]
 
-    recent_audit_trail = [
-        {
-            'timestamp': 'Today 01:45 PM',
-            'custodian': request.user.get_full_name() or request.user.username,
-            'action': 'Approved Loan RES-2026-089',
-            'details': 'Issued Raspberry Pi 4 to Student 2024-IT-0142',
-        },
-        {
-            'timestamp': 'Today 11:15 AM',
-            'custodian': request.user.get_full_name() or request.user.username,
-            'action': 'Returned Item EQ-FLK-001',
-            'details': 'Returned Fluke Multimeter inspected & marked Operational',
-        },
-        {
-            'timestamp': 'Today 08:30 AM',
-            'custodian': 'System Audit',
-            'action': 'Overdue Notification Sent',
-            'details': 'Sent reminder to 2023-IT-0842 for late soldering station',
-        },
-    ]
+    recent_audit = BorrowReservation.objects.filter(
+        status__in=[BorrowReservation.Status.RETURNED, BorrowReservation.Status.ISSUED]
+    ).select_related('equipment', 'borrower', 'inspected_by').order_by('-updated_at')[:5]
 
     context = {
         'role_title': 'Laboratory Custodian Management Console',
         'stats': stats,
         'pending_queue': pending_queue,
-        'audit_trail': recent_audit_trail,
+        'audit_trail': recent_audit,
     }
     return render(request, 'accounts/custodian_dashboard.html', context)
 
 
 @login_required
 def profile_view(request):
-    """
-    User Profile Management:
-    - Logged-in users can view their profile information.
-    - Users can update their profile details (name, email, contact, department, year, profile photo).
-    - Strict boundary: Users can ONLY view and edit their OWN profile (instance=request.user).
-    """
+    """User Profile: Users can view and edit ONLY their own profile."""
     if request.method == 'POST':
         form = UserProfileUpdateForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
@@ -314,7 +222,6 @@ def change_password_view(request):
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
-            # Prevent the user from being logged out when their password changes
             update_session_auth_hash(request, user)
             messages.success(request, "Your password was successfully updated!")
             return redirect('profile')

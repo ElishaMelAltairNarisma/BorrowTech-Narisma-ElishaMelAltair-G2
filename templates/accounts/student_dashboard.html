@@ -42,10 +42,10 @@
         <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Loans</p>
-                <p class="text-2xl font-bold text-slate-900 mt-1">1 Item</p>
-                <p class="text-xs text-emerald-600 font-medium mt-1">Due tomorrow 5:00 PM</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">{{ active_loans_count }} Item{{ active_loans_count|pluralize }}</p>
+                <p class="text-xs text-purple-600 font-medium mt-1">Checked out to you</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
                 <i class="fa-solid fa-boxes-packing"></i>
             </div>
         </div>
@@ -53,7 +53,7 @@
         <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Requests</p>
-                <p class="text-2xl font-bold text-slate-900 mt-1">1 Request</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">{{ pending_count }} Request{{ pending_count|pluralize }}</p>
                 <p class="text-xs text-amber-600 font-medium mt-1">Awaiting Lab Custodian</p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
@@ -64,7 +64,7 @@
         <div class="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Borrowing Quota</p>
-                <p class="text-2xl font-bold text-slate-900 mt-1">2 Left</p>
+                <p class="text-2xl font-bold text-slate-900 mt-1">{{ quota_left }} Left</p>
                 <p class="text-xs text-slate-500 font-medium mt-1">Max 3 concurrent items</p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
@@ -78,7 +78,7 @@
                 <p class="text-2xl font-bold text-emerald-600 mt-1">Clear</p>
                 <p class="text-xs text-slate-500 font-medium mt-1">No overdue laboratory fines</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
                 <i class="fa-solid fa-shield-heart"></i>
             </div>
         </div>
@@ -91,9 +91,9 @@
                 <h2 class="text-lg font-bold text-slate-900">My Equipment Reservations & Loans</h2>
                 <p class="text-xs text-slate-500 mt-0.5">Track your active lab hardware checkouts and approval statuses</p>
             </div>
-            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                Digital Paperless Tracking
-            </span>
+            <a href="{% url 'my_reservations' %}" class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
+                View All <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
         </div>
 
         <div class="overflow-x-auto">
@@ -102,35 +102,41 @@
                     <tr class="bg-slate-50 border-b border-slate-200/80 text-xs font-semibold uppercase text-slate-500 tracking-wider">
                         <th class="py-3 px-6">Reservation ID</th>
                         <th class="py-3 px-6">Equipment Item</th>
-                        <th class="py-3 px-6">Date Requested</th>
+                        <th class="py-3 px-6">Quantity</th>
                         <th class="py-3 px-6">Due Date / Status</th>
-                        <th class="py-3 px-6">Action / Receipt</th>
+                        <th class="py-3 px-6 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    {% for res in active_reservations %}
-                        <tr class="hover:bg-slate-50/80 transition">
-                            <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">{{ res.id }}</td>
-                            <td class="py-4 px-6 font-medium text-slate-900">{{ res.item }}</td>
-                            <td class="py-4 px-6 text-slate-500 text-xs">{{ res.date }}</td>
-                            <td class="py-4 px-6">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
-                                    {% if res.status_color == 'emerald' %}
-                                        bg-emerald-50 text-emerald-700 border border-emerald-200
-                                    {% else %}
-                                        bg-amber-50 text-amber-700 border border-amber-200
-                                    {% endif %}">
-                                    {{ res.status }}
-                                </span>
-                                <span class="block text-[11px] text-slate-500 mt-0.5">{{ res.due_date }}</span>
-                            </td>
-                            <td class="py-4 px-6">
-                                <button class="text-xs font-medium text-blue-600 hover:text-blue-800 transition">
-                                    <i class="fa-solid fa-file-lines mr-1"></i> View Digital Pass
-                                </button>
+                    {% if active_reservations %}
+                        {% for res in active_reservations %}
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">
+                                    <a href="{% url 'reservation_detail' pk=res.pk %}" class="text-blue-600 hover:underline">{{ res.reservation_code }}</a>
+                                </td>
+                                <td class="py-4 px-6 font-medium text-slate-900">{{ res.equipment.name }}</td>
+                                <td class="py-4 px-6 text-slate-600 font-mono text-xs">{{ res.quantity }} unit(s)</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ res.status_badge.bg }} {{ res.status_badge.text_color }} border {{ res.status_badge.border }}">
+                                        {{ res.status_badge.text }}
+                                    </span>
+                                    <span class="block text-[11px] text-slate-500 mt-0.5">Due: {{ res.expected_return_date|date:"M d, Y" }}</span>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <a href="{% url 'reservation_detail' pk=res.pk %}" class="text-xs font-medium text-blue-600 hover:text-blue-800 transition">
+                                        <i class="fa-solid fa-file-lines mr-1"></i> Pass
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-xs text-slate-500">
+                                You do not have any active equipment loans or reservations yet.
+                                <a href="{% url 'equipment_list' %}" class="text-blue-600 font-medium ml-1">Browse catalog</a> to reserve items.
                             </td>
                         </tr>
-                    {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -155,31 +161,33 @@
                 <div class="p-5 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition bg-gradient-to-b from-white to-slate-50/50 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <span class="font-mono text-[11px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{{ item.code }}</span>
+                            <span class="font-mono text-[11px] text-blue-600 font-bold bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{{ item.asset_code }}</span>
                             <span class="text-xs font-semibold px-2 py-0.5 rounded-full
-                                {% if item.badge_color == 'emerald' %}
+                                {% if item.status_display.color == 'emerald' %}
                                     bg-emerald-50 text-emerald-700 border border-emerald-200
-                                {% elif item.badge_color == 'amber' %}
+                                {% elif item.status_display.color == 'amber' %}
                                     bg-amber-50 text-amber-700 border border-amber-200
                                 {% else %}
                                     bg-rose-50 text-rose-700 border border-rose-200
                                 {% endif %}">
-                                {{ item.status }}
+                                {{ item.status_display.text }}
                             </span>
                         </div>
-                        <h3 class="font-bold text-slate-900 text-base mb-1">{{ item.name }}</h3>
-                        <p class="text-xs text-slate-500 mb-4">{{ item.category }}</p>
+                        <h3 class="font-bold text-slate-900 text-base mb-1">
+                            <a href="{% url 'equipment_detail' pk=item.pk %}" class="hover:text-blue-600 transition">{{ item.name }}</a>
+                        </h3>
+                        <p class="text-xs text-slate-500 mb-4">{{ item.category.name }}</p>
                     </div>
 
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                         <div>
                             <span class="text-xs text-slate-500">Available:</span>
-                            <span class="text-sm font-bold text-slate-800 ml-1">{{ item.available }} / {{ item.total }}</span>
+                            <span class="text-sm font-bold text-slate-800 ml-1">{{ item.available_quantity }} / {{ item.total_quantity }}</span>
                         </div>
-                        {% if item.available > 0 %}
-                            <button class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition">
-                                <i class="fa-solid fa-plus mr-1"></i> Request
-                            </button>
+                        {% if item.is_available %}
+                            <a href="{% url 'reservation_create' %}?equipment={{ item.pk }}" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition">
+                                <i class="fa-solid fa-plus mr-1"></i> Reserve
+                            </a>
                         {% else %}
                             <button disabled class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-400 text-xs font-semibold cursor-not-allowed">
                                 Out of Stock

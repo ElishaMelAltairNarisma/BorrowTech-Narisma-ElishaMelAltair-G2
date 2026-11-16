@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Reservation {{ reservation.reservation_code }} - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 sm:px-6">
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden p-6 sm:p-8 text-center space-y-5">
+        <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-2xl">
+            <i class="fa-solid fa-ban"></i>
+        </div>
+
+        <div>
+            <h1 class="text-xl font-bold text-slate-900">Cancel Equipment Reservation?</h1>
+            <p class="text-xs text-slate-500 mt-1">This will release your hardware hold back to the general inventory.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs space-y-1">
+            <div><span class="text-slate-400">Tracking Code:</span> <strong class="font-mono text-slate-800">{{ reservation.reservation_code }}</strong></div>
+            <div><span class="text-slate-400">Equipment:</span> <strong class="text-slate-800">{{ reservation.equipment.name }}</strong></div>
+            <div><span class="text-slate-400">Quantity:</span> <span class="text-slate-700">{{ reservation.quantity }} unit(s)</span></div>
+            <div><span class="text-slate-400">Current Status:</span> <span class="text-amber-700 font-semibold">{{ reservation.get_status_display }}</span></div>
+        </div>
+
+        <form method="post" class="pt-2 flex items-center justify-center gap-3">
+            {% csrf_token %}
+            <button type="submit" class="py-2.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition">
+                Confirm Cancellation
+            </button>
+            <a href="{% url 'reservation_detail' pk=reservation.pk %}" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
+                Keep Reservation
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

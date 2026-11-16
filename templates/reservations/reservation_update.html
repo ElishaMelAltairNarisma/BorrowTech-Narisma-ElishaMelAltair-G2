@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Reservation {{ reservation.reservation_code }} - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 sm:px-6">
+    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 p-6 sm:p-8 text-white">
+            <div class="flex items-center space-x-3 mb-1">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-cyan-300">
+                    <i class="fa-solid fa-pen-to-square text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Edit Reservation Request</h1>
+                    <p class="text-slate-300 text-xs sm:text-sm mt-0.5">{{ reservation.reservation_code }} &bull; {{ reservation.equipment.name }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Body -->
+        <form method="post" class="p-6 sm:p-8 space-y-5" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs space-y-1">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div>
+                <label for="{{ form.quantity.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Quantity Required <span class="text-rose-500">*</span>
+                </label>
+                {{ form.quantity }}
+                {% if form.quantity.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.quantity.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.expected_return_date.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Expected Return Date <span class="text-rose-500">*</span>
+                </label>
+                {{ form.expected_return_date }}
+                {% if form.expected_return_date.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.expected_return_date.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.purpose.id_for_label }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Academic Purpose <span class="text-rose-500">*</span>
+                </label>
+                {{ form.purpose }}
+                {% if form.purpose.errors %}
+                    <p class="text-xs text-rose-600 mt-1 font-medium">{{ form.purpose.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="pt-3 flex items-center gap-3">
+                <button type="submit" class="flex-grow py-3 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition">
+                    Save Changes
+                </button>
+                <a href="{% url 'reservation_detail' pk=reservation.pk %}" class="py-3 px-5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

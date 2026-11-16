@@ -60,17 +60,31 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <nav class="hidden md:flex items-center space-x-6">
+                <nav class="hidden md:flex items-center space-x-5">
                     <a href="{% url 'home' %}" class="text-sm font-medium text-slate-300 hover:text-white transition">
                         <i class="fa-solid fa-house mr-1 text-slate-400"></i> Home
                     </a>
 
                     {% if user.is_authenticated %}
+                        <a href="{% url 'equipment_list' %}" class="text-sm font-medium text-slate-300 hover:text-white transition">
+                            <i class="fa-solid fa-microchip mr-1 text-slate-400"></i> Equipment
+                        </a>
+
+                        {% if user.is_student_user %}
+                            <a href="{% url 'my_reservations' %}" class="text-sm font-medium text-slate-300 hover:text-white transition">
+                                <i class="fa-solid fa-boxes-packing mr-1 text-slate-400"></i> My Loans
+                            </a>
+                        {% elif user.is_custodian_user %}
+                            <a href="{% url 'custodian_queue' %}" class="text-sm font-medium text-slate-300 hover:text-white transition">
+                                <i class="fa-solid fa-inbox mr-1 text-slate-400"></i> Loan Queue
+                            </a>
+                        {% endif %}
+
                         <a href="{% url 'dashboard_redirect' %}" class="text-sm font-medium text-slate-300 hover:text-white transition">
                             <i class="fa-solid fa-gauge mr-1 text-slate-400"></i> Dashboard
                         </a>
                         <a href="{% url 'profile' %}" class="text-sm font-medium text-slate-300 hover:text-white transition">
-                            <i class="fa-solid fa-id-card mr-1 text-slate-400"></i> My Profile
+                            <i class="fa-solid fa-id-card mr-1 text-slate-400"></i> Profile
                         </a>
                     {% endif %}
                 </nav>

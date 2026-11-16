@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Laboratory Loan Management Queue - BorrowTech{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 p-6 sm:p-8 rounded-3xl text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-purple-900/60">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold mb-2 border border-purple-400/30">
+                <i class="fa-solid fa-inbox"></i> Laboratory Custodian Operations
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Equipment Loan Approval & Circulation Queue</h1>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                Process student reservation approvals, physical equipment handovers, and return condition inspections.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{% url 'equipment_create' %}" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Add Equipment
+            </a>
+            <a href="{% url 'equipment_list' %}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition">
+                Inventory Catalog
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+        <a href="{% url 'custodian_queue' %}?tab=pending" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 {% if current_tab == 'pending' %}bg-amber-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            <span>Pending Approvals</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if current_tab == 'pending' %}bg-amber-800 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">{{ pending_count }}</span>
+        </a>
+
+        <a href="{% url 'custodian_queue' %}?tab=approved" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 {% if current_tab == 'approved' %}bg-blue-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            <span>Ready for Handover</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if current_tab == 'approved' %}bg-blue-800 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">{{ approved_count }}</span>
+        </a>
+
+        <a href="{% url 'custodian_queue' %}?tab=active" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 {% if current_tab == 'active' %}bg-purple-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            <span>Active Circulating Loans</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if current_tab == 'active' %}bg-purple-800 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">{{ active_count }}</span>
+        </a>
+
+        <a href="{% url 'custodian_queue' %}?tab=overdue" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 {% if current_tab == 'overdue' %}bg-rose-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            <span>Overdue Returns</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if current_tab == 'overdue' %}bg-rose-800 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">{{ overdue_count }}</span>
+        </a>
+
+        <a href="{% url 'custodian_queue' %}?tab=returned" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_tab == 'returned' %}bg-emerald-600 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            Returned & Archived
+        </a>
+
+        <a href="{% url 'custodian_queue' %}?tab=all" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition {% if current_tab == 'all' %}bg-slate-800 text-white shadow-sm{% else %}bg-white text-slate-600 hover:bg-slate-100 border border-slate-200{% endif %}">
+            All Records
+        </a>
+    </div>
+
+    <!-- Master Queue Table -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200/80 text-xs font-semibold uppercase text-slate-500 tracking-wider">
+                        <th class="py-3 px-6">Tracking Code</th>
+                        <th class="py-3 px-6">Student Information</th>
+                        <th class="py-3 px-6">Equipment Item</th>
+                        <th class="py-3 px-6">Quantity</th>
+                        <th class="py-3 px-6">Loan Schedule</th>
+                        <th class="py-3 px-6">Status</th>
+                        <th class="py-3 px-6 text-right">Custodian Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% if items %}
+                        {% for req in items %}
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="py-4 px-6 font-mono text-xs font-bold text-slate-800">
+                                    <a href="{% url 'reservation_detail' pk=req.pk %}" class="text-purple-700 hover:underline">
+                                        {{ req.reservation_code }}
+                                    </a>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="font-bold text-slate-900 block">{{ req.borrower.get_full_name|default:req.borrower.username }}</span>
+                                    <span class="text-xs text-slate-500 font-mono">{{ req.borrower.student_id|default:"ID: N/A" }} &bull; {{ req.borrower.department }}</span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="font-medium text-slate-900 block">{{ req.equipment.name }}</span>
+                                    <span class="text-xs text-slate-500 font-mono">{{ req.equipment.asset_code }}</span>
+                                </td>
+                                <td class="py-4 px-6 text-xs text-slate-700 font-mono">
+                                    {{ req.quantity }} unit(s)
+                                </td>
+                                <td class="py-4 px-6 text-xs text-slate-600">
+                                    <span class="block">{{ req.start_date|date:"M d" }} &rarr; {{ req.expected_return_date|date:"M d, Y" }}</span>
+                                    {% if req.is_overdue %}
+                                        <span class="text-[11px] font-bold text-rose-600">OVERDUE</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ req.status_badge.bg }} {{ req.status_badge.text_color }} border {{ req.status_badge.border }}">
+                                        {{ req.status_badge.text }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6 text-right space-x-1.5">
+                                    <a href="{% url 'reservation_detail' pk=req.pk %}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition" title="Inspect Digital Pass">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    {% if req.status == 'PENDING' %}
+                                        <a href="{% url 'custodian_approve' pk=req.pk %}" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">
+                                            Approve
+                                        </a>
+                                        <a href="{% url 'custodian_reject' pk=req.pk %}" class="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition">
+                                            Reject
+                                        </a>
+                                    {% elif req.status == 'APPROVED' %}
+                                        <a href="{% url 'custodian_issue' pk=req.pk %}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-sm transition">
+                                            Handover
+                                        </a>
+                                    {% elif req.status == 'ISSUED' %}
+                                        <a href="{% url 'custodian_return' pk=req.pk %}" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition">
+                                            Return
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-xs text-slate-500">
+                                <i class="fa-solid fa-inbox text-2xl text-slate-300 block mb-2"></i>
+                                No loan records found under the '{{ current_tab|title }}' tab.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
